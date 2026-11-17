@@ -1,19 +1,9 @@
 # Orvelis AI
 
-> The intelligence layer behind Datariot — AI-powered conversations, critical analysis and deeper context.
+Orvelis is the AI assistant for [Datariot](https://datariot.xyz).
 
-[**Datariot**](https://datariot.xyz) · [**Documentation**](https://info.datariot.xyz) · [**GitHub**](https://github.com/datariotdev)
+The authenticated `orvelis-ai` Supabase Edge Function serves the web and mobile clients. General chat, daily insights, text analysis and debate prompts use OpenAI Responses with Gemini as a fallback. Deep Dive and video chat use Gemini for supported clips and can fall back to an OpenAI audio transcript. The client identifies each clip by ID. Older releases can still use their original request format.
 
-**Project:** [https://info.datariot.xyz](https://info.datariot.xyz)
+Configure `OPENAI_API_KEY` and `GEMINI_API_KEY` in the Datariot project's Edge Function Secrets. Default model IDs are `gpt-5.4-mini` and `gemini-3.5-flash-lite`. To select a different compatible model, set `ORVELIS_OPENAI_MODEL` or `ORVELIS_GEMINI_MODEL`.
 
----
-
-Datariot's AI service, including Gemini and DeepSeek routing, safety rules, prompts and evaluations.
-
-## Architecture
-Datariot client → authenticated Supabase Edge Function `orvelis-ai` → Gemini primary → DeepSeek fallback.
-
-The deployed function belongs to the Datariot Supabase project. API keys must be configured as Supabase secrets: `GEMINI_API_KEY`, `DEEPSEEK_API_KEY`.
-
-## Status
-The gateway was deployed previously; provider credentials and end-to-end fallback behavior still require verification. The source will be versioned in this repository; production is not changed by repository creation.
+The gateway sends a supported public clip URL to Gemini, or sends the media to the OpenAI transcription endpoint when the Gemini request fails or isn't available. The gateway resolves the clip from the authenticated user's visible video row and only sends media from approved hosts. When the video and audio are unavailable, the answer identifies the limited evidence.
