@@ -89,7 +89,17 @@ async function postJson(url: string, headers: Record<string, string>, data: unkn
     method: "POST", headers: { ...headers, "content-type": "application/json" },
     body: JSON.stringify(data), signal: AbortSignal.timeout(timeout), redirect: "error",
   });
-  if (!response.ok) throw new Error("HTTP " + response.status);
+  if (!response.ok) {
+    let code = "";
+    if (response.status === 429 && url === "https://api.openai.com/v1/responses") {
+      const error = (await response.json().catch(() => null))?.error;
+      const safeCode = [error?.code, error?.type].find((value) =>
+        typeof value === "string" && /^(?:insufficient_quota|rate_limit_exceeded|billing_hard_limit_reached|organization_usage_limit_exceeded|organization_spend_limit_exceeded|project_spend_limit_exceeded|billing_not_active|insufficient_credits|prepaid_credits_exhausted|usage_limit_exceeded)$/.test(value)
+      );
+      if (safeCode) code = " " + safeCode;
+    }
+    throw new Error("HTTP " + response.status + code);
+  }
   return response.json();
 }
 
@@ -128,7 +138,7 @@ async function gemini(key: string, model: string, history: Message[], prompt: st
 
 function logFailure(stage: string, error: unknown) {
   const message = error instanceof Error ? error.message : "";
-  const label = /^HTTP \d{3}$/.test(message)
+  const label = /^HTTP \d{3}(?: (?:insufficient_quota|rate_limit_exceeded|billing_hard_limit_reached|organization_usage_limit_exceeded|organization_spend_limit_exceeded|project_spend_limit_exceeded|billing_not_active|insufficient_credits|prepaid_credits_exhausted|usage_limit_exceeded))?$/.test(message)
     ? message : error instanceof Error ? error.name : "Error";
   console.error("Orvelis", stage, label);
 }
