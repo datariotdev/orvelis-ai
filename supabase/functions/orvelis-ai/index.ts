@@ -170,7 +170,7 @@ export async function handleRequest(req: Request) {
     return json({ content, context: "unavailable" });
   }
 
-  const openAIKey = Deno.env.get("OPENAI_API_KEY")?.trim();
+  const openAIKey = Deno.env.get("OPENAI_API_KEY")?.trim() || Deno.env.get("OPENAI_APY_KEY")?.trim();
   const geminiKey = Deno.env.get("GEMINI_API_KEY")?.trim();
   if (!openAIKey && !geminiKey) {
     console.error("Orvelis has no configured providers");
